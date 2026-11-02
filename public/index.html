@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizarra</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #ddd; }
+    header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 8px 12px; background: #fff; }
+    #ip { width: 130px; }
+    #puerto { width: 70px; }
+    #estado { margin-left: auto; font-size: 14px; }
+    canvas { display: block; background: #fff; touch-action: none; cursor: crosshair; }
+  </style>
+</head>
+<body>
+  <header>
+    <form id="conexion">
+      <label>IP <input id="ip" required></label>
+      <label>Puerto <input id="puerto" type="number" min="1" max="65535" required></label>
+      <button id="boton">Conectar</button>
+    </form>
+    <label>Color <input type="color" id="color" value="#000000"></label>
+    <span id="estado">Desconectado</span>
+  </header>
+  <canvas id="pizarra"></canvas>
+
+  <script>
+    const canvas = document.getElementById('pizarra');
+    const ctx = canvas.getContext('2d');
+    const inputColor = document.getElementById('color');
+    const inputIp = document.getElementById('ip');
+    const inputPuerto = document.getElementById('puerto');
+    const boton = document.getElementById('boton');
+    const estado = document.getElementById('estado');
+
+    // Al cambiar el tamano el canvas se borra, por eso se copia lo dibujado y se vuelve a pintar
+    function ajustarTamano() {
+      const copia = document.createElement('canvas');
+      copia.width = canvas.width;
+      copia.height = canvas.height;
+      if (copia.width && copia.height) copia.getContext('2d').drawImage(canvas, 0, 0);
+
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight - document.querySelector('header').offsetHeight;
+      if (copia.width && copia.height) ctx.drawImage(copia, 0, 0, canvas.width, canvas.height);
+    }
+
+    ajustarTamano();
+    window.addEventListener('resize', ajustarTamano);
+
+    // Si la pagina la entrego el servidor se proponen su IP y puerto
+    if (location.protocol === 'http:') {
+      inputIp.value = location.hostname;
+      inputPuerto.value = location.port || 80;
+    }
+
+    let ws = null;
+
+    document.getElementById('conexion').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (ws) {
+        ws.close();
+        return;
+      }
+      conectar(inputIp.value.trim(), inputPuerto.value);
+    });
+
+    function conectar(ip, puerto) {
+      estado.textContent = `Conectando a ${ip}:${puerto}...`;
+      ws = new WebSocket(`ws://${ip}:${puerto}`);
+
+      ws.onopen = () => {
+        estado.textContent = `Conectado a ${ip}:${puerto}`;
+        boton.textContent = 'Desconectar';
+        inputIp.disabled = inputPuerto.disabled = true;
+      };
+
+      ws.onclose = () => {
+        estado.textContent = `Desconectado de ${ip}:${puerto}`;
+        boton.textContent = 'Conectar';
+        inputIp.disabled = inputPuerto.disabled = false;
+        ws = null;
+      };
+
+      ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.tipo === 'trazo') dibujar(msg);
+      };
+    }
+
+    // Las coordenadas viajan entre 0 y 1 para que se vean igual en pantallas de distinto tamano
+    function dibujar({ x1, y1, x2, y2, color }) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x1 * canvas.width, y1 * canvas.height);
+      ctx.lineTo(x2 * canvas.width, y2 * canvas.height);
+      ctx.stroke();
+    }
+
+    let anterior = null;
+
+    function punto(e) {
+      const r = canvas.getBoundingClientRect();
+      return { x: (e.clientX - r.left) / canvas.width, y: (e.clientY - r.top) / canvas.height };
+    }
+
+    canvas.addEventListener('pointerdown', (e) => { anterior = punto(e); });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!anterior) return;
+      const actual = punto(e);
+      const trazo = { tipo: 'trazo', x1: anterior.x, y1: anterior.y, x2: actual.x, y2: actual.y, color: inputColor.value };
+      dibujar(trazo);
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(trazo));
+      anterior = actual;
+    });
+
+    window.addEventListener('pointerup', () => { anterior = null; });
+  </script>
+</body>
+</html>
