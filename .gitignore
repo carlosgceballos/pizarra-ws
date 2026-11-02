@@ -1,0 +1,18 @@
+# Dependencias
+node_modules/
+vendor/
+venv/
+.venv/
+__pycache__/
+
+# Entorno
+.env
+
+# Builds y logs
+dist/
+build/
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db

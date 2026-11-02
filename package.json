@@ -1,0 +1,14 @@
+{
+  "name": "pizarra-ws",
+  "version": "1.0.0",
+  "description": "Pizarra compartida en red local con WebSocket",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.22.1"
+  }
+}
