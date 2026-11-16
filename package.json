@@ -9,6 +9,9 @@
   },
   "license": "ISC",
   "dependencies": {
+    "peer": "^1.0.2",
+    "peerjs": "^1.5.5",
+    "selfsigned": "^5.5.0",
     "ws": "^8.22.1"
   }
 }
