@@ -83,6 +83,8 @@ wss.on('connection', (ws, req) => {
 
     if (msg.tipo === 'trazo') {
       broadcast(msg, ws);
+    } else if (msg.tipo === 'limpiar') {
+      broadcast({ tipo: 'limpiar', de: ws.id }, ws);
     } else if (msg.tipo === 'listo' || msg.tipo === 'apagado') {
       // Avisos de la videollamada: van a los demas con el id de quien lo manda
       broadcast({ tipo: msg.tipo, de: ws.id }, ws);

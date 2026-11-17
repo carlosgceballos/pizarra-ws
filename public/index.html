@@ -12,6 +12,8 @@
     #estado { margin-left: auto; font-size: 14px; }
     main { display: flex; }
     canvas { display: block; background: #fff; touch-action: none; cursor: crosshair; }
+    canvas.borrando { cursor: cell; }
+    #botonBorrador.activo { background: #333; color: #fff; }
     aside { width: 220px; box-sizing: border-box; padding: 8px; background: #eee; overflow-y: auto; font-size: 14px; }
     aside h2 { font-size: 14px; margin: 0 0 6px; }
     #conectados { list-style: none; margin: 0 0 12px; padding: 0; }
@@ -28,6 +30,8 @@
       <button id="boton">Conectar</button>
     </form>
     <label>Color <input type="color" id="color" value="#000000"></label>
+    <button id="botonBorrador">Borrador</button>
+    <button id="botonLimpiar">Limpiar pizarra</button>
     <button id="botonCamara" disabled>Prender camara</button>
     <button id="botonMicro" disabled>Prender microfono</button>
     <span id="estado">Desconectado</span>
@@ -121,6 +125,7 @@
       ws.onmessage = (e) => {
         const msg = JSON.parse(e.data);
         if (msg.tipo === 'trazo') dibujar(msg);
+        else if (msg.tipo === 'limpiar') limpiar();
         else if (msg.tipo === 'bienvenida') registrar(ip, msg);
         else if (msg.tipo === 'lista') actualizarLista(msg.conexiones);
         else if (msg.tipo === 'listo') { if (miStream) compartirCon(msg.de); }
@@ -328,15 +333,43 @@
     // ---- Pizarra ----
 
     // Las coordenadas viajan entre 0 y 1 para que se vean igual en pantallas de distinto tamano
-    function dibujar({ x1, y1, x2, y2, color }) {
+    // Con el borrador la linea es mas gruesa y en vez de pintar quita lo que hay debajo
+    function dibujar({ x1, y1, x2, y2, color, borrador }) {
+      ctx.globalCompositeOperation = borrador ? 'destination-out' : 'source-over';
       ctx.strokeStyle = color;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = borrador ? 20 : 3;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(x1 * canvas.width, y1 * canvas.height);
       ctx.lineTo(x2 * canvas.width, y2 * canvas.height);
       ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over';
     }
+
+    function limpiar() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    const botonBorrador = document.getElementById('botonBorrador');
+    let borrando = false;
+
+    botonBorrador.addEventListener('click', () => {
+      borrando = !borrando;
+      botonBorrador.classList.toggle('activo', borrando);
+      canvas.classList.toggle('borrando', borrando);
+    });
+
+    // Al elegir un color se vuelve a dibujar
+    inputColor.addEventListener('input', () => {
+      if (borrando) botonBorrador.click();
+    });
+
+    // Limpia la pizarra de todos, no solo la mia
+    document.getElementById('botonLimpiar').addEventListener('click', () => {
+      if (!confirm('Se va a borrar la pizarra de todos los conectados. ¿Seguro?')) return;
+      limpiar();
+      enviar({ tipo: 'limpiar' });
+    });
 
     let anterior = null;
 
@@ -350,7 +383,7 @@
     canvas.addEventListener('pointermove', (e) => {
       if (!anterior) return;
       const actual = punto(e);
-      const trazo = { tipo: 'trazo', x1: anterior.x, y1: anterior.y, x2: actual.x, y2: actual.y, color: inputColor.value };
+      const trazo = { tipo: 'trazo', x1: anterior.x, y1: anterior.y, x2: actual.x, y2: actual.y, color: inputColor.value, borrador: borrando };
       dibujar(trazo);
       enviar(trazo);
       anterior = actual;

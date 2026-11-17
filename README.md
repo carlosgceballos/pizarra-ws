@@ -43,6 +43,12 @@ En la pagina, arriba a la izquierda, se escribe la IP y el puerto del servidor y
 
 La primera vez Windows pregunta si deja pasar a Node por el firewall: hay que permitirlo en redes privadas, si no las otras computadoras no se pueden conectar.
 
+## Pizarra
+
+- **Color:** elige el color del lapiz.
+- **Borrador:** al activarlo se borra con una linea mas gruesa en vez de pintar. Se apaga con el mismo boton o al elegir un color. Lo que se borra tambien se borra en los demas.
+- **Limpiar pizarra:** borra toda la pizarra de todos los conectados (pide confirmar antes).
+
 ## Videollamada
 
 A la derecha sale la lista de **Conectados**, que manda el servidor cada vez que alguien entra o sale.
@@ -81,7 +87,8 @@ Los mensajes del WebSocket van en JSON.
 
 | Tipo | Quien lo manda | Descripcion |
 |------|----------------|-------------|
-| `trazo` | Cliente | Un segmento de linea: `{ "tipo": "trazo", "x1", "y1", "x2", "y2", "color" }`. Las coordenadas van de 0 a 1 (proporcion del ancho y alto del canvas) para que se vea igual en pantallas de distinto tamano. El servidor lo reenvia a todos los demas |
+| `trazo` | Cliente | Un segmento de linea: `{ "tipo": "trazo", "x1", "y1", "x2", "y2", "color", "borrador" }`. Las coordenadas van de 0 a 1 (proporcion del ancho y alto del canvas) para que se vea igual en pantallas de distinto tamano. Con `borrador: true` el segmento borra en vez de pintar. El servidor lo reenvia a todos los demas |
+| `limpiar` | Cliente | Borra toda la pizarra: `{ "tipo": "limpiar" }`. A los demas les llega con `de` |
 | `bienvenida` | Servidor | Al conectarse: `{ "tipo": "bienvenida", "id", "puertoPeer" }`. El id que le toco y el puerto del servidor peer to peer |
 | `lista` | Servidor | La lista de conexiones: `{ "tipo": "lista", "conexiones": [1, 2] }`. Se manda a todos cuando alguien entra o sale |
 | `listo` | Cliente | Avisa que ya puede recibir video: `{ "tipo": "listo" }`. A los demas les llega con `de` (el id de quien lo mando) |
