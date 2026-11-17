@@ -20,6 +20,7 @@
     #conectados li { margin-bottom: 4px; }
     #videos p { margin: 0 0 2px; }
     #videos video { width: 100%; background: #000; margin-bottom: 8px; }
+    .estado-video { display: block; color: #555; margin-bottom: 2px; }
   </style>
 </head>
 <body>
@@ -155,7 +156,10 @@
         const de = Number(conexion.peer.slice(1));
         dejarDeRecibir(de);
         entrantes.set(de, conexion);
-        conexion.on('stream', (stream) => mostrarVideo(de, `Usuario ${de}`, stream, false));
+        conexion.on('stream', (stream) => {
+          mostrarVideo(de, `Usuario ${de}`, stream, false);
+          vigilarConexion(de, conexion);
+        });
         conexion.answer();
       });
 
@@ -293,7 +297,9 @@
       video.playsInline = true;
       video.muted = silenciado;
       video.srcObject = stream;
-      caja.append(titulo, video);
+      const estadoVideo = document.createElement('small');
+      estadoVideo.className = 'estado-video';
+      caja.append(titulo, estadoVideo, video);
       videos.append(caja);
 
       // Si el navegador lo pausa solo, se vuelve a intentar
@@ -311,6 +317,28 @@
         activar.onclick = () => { video.muted = false; video.play(); activar.remove(); };
         titulo.after(activar);
       });
+    }
+
+    // Muestra debajo del nombre si la conexion directa con el otro navegador se llego a armar
+    function vigilarConexion(id, conexion) {
+      const pc = conexion.peerConnection;
+      if (!pc || pc.vigilada) return;
+      pc.vigilada = true;
+      const textos = {
+        new: 'Conectando...',
+        checking: 'Conectando...',
+        connected: 'Conectado',
+        completed: 'Conectado',
+        disconnected: 'Se perdio la conexion',
+        failed: 'No se pudo conectar directo con este equipo',
+        closed: 'Conexion cerrada',
+      };
+      const pintar = () => {
+        const estadoVideo = document.querySelector(`#video-${id} .estado-video`);
+        if (estadoVideo) estadoVideo.textContent = textos[pc.iceConnectionState] || pc.iceConnectionState;
+      };
+      pc.addEventListener('iceconnectionstatechange', pintar);
+      pintar();
     }
 
     function quitarVideo(id) {
