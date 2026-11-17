@@ -36,6 +36,8 @@ if (HTTPS) {
 // Archivos que entrega el servidor HTTP
 const archivos = {
   '/': { ruta: './public/index.html', tipo: 'text/html; charset=utf-8' },
+  '/estilos.css': { ruta: './public/estilos.css', tipo: 'text/css; charset=utf-8' },
+  '/pizarra.js': { ruta: './public/pizarra.js', tipo: 'text/javascript; charset=utf-8' },
   '/peerjs.min.js': { ruta: './node_modules/peerjs/dist/peerjs.min.js', tipo: 'text/javascript; charset=utf-8' },
 };
 

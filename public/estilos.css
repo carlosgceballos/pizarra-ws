@@ -1,0 +1,16 @@
+body { margin: 0; font-family: sans-serif; background: #ddd; }
+header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 8px 12px; background: #fff; }
+#ip { width: 130px; }
+#puerto { width: 70px; }
+#estado { margin-left: auto; font-size: 14px; }
+main { display: flex; }
+canvas { display: block; background: #fff; touch-action: none; cursor: crosshair; }
+canvas.borrando { cursor: cell; }
+#botonBorrador.activo { background: #333; color: #fff; }
+aside { width: 220px; box-sizing: border-box; padding: 8px; background: #eee; overflow-y: auto; font-size: 14px; }
+aside h2 { font-size: 14px; margin: 0 0 6px; }
+#conectados { list-style: none; margin: 0 0 12px; padding: 0; }
+#conectados li { margin-bottom: 4px; }
+#videos p { margin: 0 0 2px; }
+#videos video { width: 100%; background: #000; margin-bottom: 8px; }
+.estado-video { display: block; color: #555; margin-bottom: 2px; }

@@ -78,7 +78,9 @@ Como el certificado no lo firma nadie, la primera vez el navegador avisa que el 
 pizarra-ws/
 ├── server.js          # Servidor HTTP + WebSocket + servidor peer to peer
 └── public/
-    └── index.html     # Pagina de la pizarra (canvas, conectados y videos)
+    ├── index.html     # Estructura de la pagina (barra, canvas, conectados y videos)
+    ├── estilos.css    # Estilos
+    └── pizarra.js     # Logica: conexion, videollamada y pizarra
 ```
 
 ## Mensajes
